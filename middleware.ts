@@ -1,7 +1,3 @@
-export { default } from 'next-auth/middleware'
-
-export const config = {
-  matcher: [
-    '/((?!api/auth|login|register|_next/static|_next/image|favicon.ico).*)',
-  ],
-}
+// Auth protection is handled in app/(dashboard)/layout.tsx via getServerSession
+// No middleware needed — avoids Edge runtime JWT issues
+export const config = { matcher: [] }

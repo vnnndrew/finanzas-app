@@ -1,7 +1,13 @@
+import { redirect } from 'next/navigation'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { TopHeader } from '@/components/layout/TopHeader'
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const session = await getServerSession(authOptions)
+  if (!session) redirect('/login')
+
   return (
     <div className="min-h-screen" style={{ minHeight: '100dvh' }}>
       <TopHeader />
