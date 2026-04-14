@@ -1,14 +1,16 @@
 import OpenAI from 'openai'
 import type { Category } from '@/types'
 
-const client = new OpenAI({
-  baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: process.env.OPENROUTER_API_KEY!,
-  defaultHeaders: {
-    'HTTP-Referer': process.env.NEXTAUTH_URL ?? 'http://localhost:3000',
-    'X-Title': 'Finanzas CL',
-  },
-})
+function getClient() {
+  return new OpenAI({
+    baseURL: 'https://openrouter.ai/api/v1',
+    apiKey: process.env.OPENROUTER_API_KEY ?? 'missing',
+    defaultHeaders: {
+      'HTTP-Referer': process.env.NEXTAUTH_URL ?? 'http://localhost:3000',
+      'X-Title': 'Finanzas CL',
+    },
+  })
+}
 
 // Modelo barato y rápido en OpenRouter
 const MODEL = 'google/gemma-3-27b-it:free'
@@ -41,7 +43,7 @@ export async function enrichTransactions(
       .map((t, i) => `${i + 1}. ID:${t.id} | DESC:"${t.description_raw}" | MONTO:${t.amount}`)
       .join('\n')
 
-    const response = await client.chat.completions.create({
+    const response = await getClient().chat.completions.create({
       model: MODEL,
       max_tokens: 1000,
       messages: [
