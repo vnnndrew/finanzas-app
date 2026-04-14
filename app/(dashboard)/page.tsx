@@ -6,9 +6,15 @@ import { StatsCard } from '@/components/dashboard/StatsCard'
 import { DonutChart } from '@/components/dashboard/DonutChart'
 import { MonthlyLineChart } from '@/components/dashboard/LineChart'
 import { TransactionRow } from '@/components/transactions/TransactionRow'
+import { AlertBanner } from '@/components/dashboard/AlertBanner'
+import { ProjectionCard } from '@/components/dashboard/ProjectionCard'
+import { SavingsGoal } from '@/components/dashboard/SavingsGoal'
+import { BudgetProgress } from '@/components/dashboard/BudgetProgress'
+import { RecurringExpenses } from '@/components/dashboard/RecurringExpenses'
 import { currentMonthRange } from '@/lib/utils'
 import type { Transaction, CategoryStats, MonthlyStats, Category } from '@/types'
-import { RefreshCw } from 'lucide-react'
+import { RefreshCw, BarChart3 } from 'lucide-react'
+import Link from 'next/link'
 
 interface Stats {
   totalIncome: number
@@ -34,7 +40,10 @@ export default function DashboardPage() {
       fetch(`/api/transactions/stats?from=${from}&to=${to}`),
       fetch(`/api/transactions?limit=10&from=${from}&to=${to}`),
     ])
-    const [statsData, txData] = await Promise.all([statsRes.json(), txRes.json()])
+    const [statsData, txData] = await Promise.all([
+      statsRes.json(),
+      txRes.json(),
+    ])
     setStats(statsData)
     setRecent(txData.transactions ?? [])
     setLoading(false)
@@ -66,7 +75,9 @@ export default function DashboardPage() {
       setSyncMsg('Sincronizado')
       await fetchData()
     } catch (err: unknown) {
-      setSyncMsg(err instanceof Error ? err.message : 'Error al sincronizar')
+      setSyncMsg(
+        err instanceof Error ? err.message : 'Error al sincronizar'
+      )
     }
     setSyncing(false)
   }
@@ -87,7 +98,7 @@ export default function DashboardPage() {
   return (
     <div className="stagger">
       {/* Greeting */}
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: '16px' }}>
         <h1
           style={{
             fontFamily: 'var(--font-syne)',
@@ -117,33 +128,55 @@ export default function DashboardPage() {
           >
             {monthName} {now.getFullYear()}
           </p>
-          <button
-            onClick={handleSync}
-            disabled={syncing}
-            className="press-scale"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '7px 12px',
-              borderRadius: '8px',
-              background: syncing ? 'var(--card)' : 'var(--accent-dim)',
-              border: '1px solid rgba(0,208,132,0.15)',
-              color: syncing ? 'var(--muted)' : 'var(--accent)',
-              fontFamily: 'var(--font-syne)',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: syncing ? 'not-allowed' : 'pointer',
-            }}
-          >
-            <RefreshCw
-              size={13}
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <Link
+              href="/recap"
+              className="press-scale"
               style={{
-                animation: syncing ? 'spin 1s linear infinite' : 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '7px 10px',
+                borderRadius: '8px',
+                background: 'var(--card)',
+                border: '1px solid var(--border)',
+                color: 'var(--muted)',
+                fontFamily: 'var(--font-syne)',
+                fontSize: '11px',
+                textDecoration: 'none',
               }}
-            />
-            {syncing ? 'Sync...' : 'Sync'}
-          </button>
+            >
+              <BarChart3 size={12} />
+              Recap
+            </Link>
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="press-scale"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '7px 10px',
+                borderRadius: '8px',
+                background: syncing ? 'var(--card)' : 'var(--accent-dim)',
+                border: '1px solid rgba(0,208,132,0.15)',
+                color: syncing ? 'var(--muted)' : 'var(--accent)',
+                fontFamily: 'var(--font-syne)',
+                fontSize: '11px',
+                fontWeight: 600,
+                cursor: syncing ? 'not-allowed' : 'pointer',
+              }}
+            >
+              <RefreshCw
+                size={12}
+                style={{
+                  animation: syncing ? 'spin 1s linear infinite' : 'none',
+                }}
+              />
+              Sync
+            </button>
+          </div>
         </div>
       </div>
 
@@ -151,7 +184,7 @@ export default function DashboardPage() {
       {syncMsg && (
         <div
           style={{
-            marginBottom: '16px',
+            marginBottom: '12px',
             padding: '10px 14px',
             borderRadius: '10px',
             background: 'var(--accent-dim)',
@@ -165,14 +198,17 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Stats cards — stacked */}
+      {/* Alerts */}
+      <AlertBanner />
+
+      {/* Stats cards */}
       {loading ? (
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
             gap: '10px',
-            marginBottom: '20px',
+            marginBottom: '16px',
           }}
         >
           {[0, 1, 2].map((i) => (
@@ -189,7 +225,7 @@ export default function DashboardPage() {
             display: 'flex',
             flexDirection: 'column',
             gap: '10px',
-            marginBottom: '20px',
+            marginBottom: '16px',
           }}
         >
           <StatsCard
@@ -209,6 +245,15 @@ export default function DashboardPage() {
           />
         </div>
       )}
+
+      {/* Savings Goal */}
+      <SavingsGoal />
+
+      {/* Budget Progress */}
+      <BudgetProgress />
+
+      {/* Projection */}
+      <ProjectionCard />
 
       {/* Category donut */}
       <div className="card" style={{ padding: '16px', marginBottom: '12px' }}>
@@ -294,6 +339,9 @@ export default function DashboardPage() {
           <MonthlyLineChart data={stats?.monthlyStats ?? []} />
         )}
       </div>
+
+      {/* Recurring Expenses */}
+      <RecurringExpenses />
 
       {/* Recent transactions */}
       <div className="card" style={{ padding: '16px' }}>
