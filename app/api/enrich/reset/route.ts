@@ -9,11 +9,12 @@ export async function POST() {
   if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const db = createServiceClient()
-  const { count } = await db
+  const { data } = await db
     .from('transactions')
     .update({ enriched: false, category: 'otro', merchant: '' })
     .eq('user_id', session.user.id)
-    .select('id', { count: 'exact', head: false })
+    .select('id')
 
+  const count = data?.length ?? 0
   return NextResponse.json({ reset: count, message: `${count} transacciones marcadas para re-categorizar` })
 }
