@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"console.log\\(require\\('crypto'\\).randomBytes\\(32\\).toString\\('base64'\\)\\)\")",
+      "WebFetch(domain:docs.fintoc.com)",
+      "Bash(node scripts/enrich.mjs)",
+      "Bash(node -e ':*)",
+      "Bash(curl -s \"https://openrouter.ai/api/v1/models\" -H \"Authorization: Bearer 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\")",
+      "Bash(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\('/dev/stdin','utf-8'\\)\\); d.data.filter\\(m=>m.id.includes\\(':free'\\)\\).forEach\\(m=>console.log\\(m.id\\)\\)\")",
+      "Bash(gh auth:*)"
+    ]
+  }
+}
