@@ -17,17 +17,22 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
-    const res = await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    })
+    try {
+      const res = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      })
 
-    if (res?.error) {
-      setError('Email o contrasena incorrectos')
+      if (res?.ok && !res?.error) {
+        router.push('/')
+      } else {
+        setError('Email o contraseña incorrectos')
+        setLoading(false)
+      }
+    } catch {
+      setError('Error de conexión. Intenta de nuevo.')
       setLoading(false)
-    } else {
-      router.push('/')
     }
   }
 
