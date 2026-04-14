@@ -1,17 +1,27 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+export function getSupabaseClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !key) throw new Error('Missing Supabase env vars')
+  return createClient(url, key)
+}
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Lazy singleton for client-side usage
+let _supabase: ReturnType<typeof createClient> | null = null
+export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
+  get(_, prop) {
+    if (!_supabase) _supabase = getSupabaseClient()
+    return (_supabase as any)[prop]
+  },
+})
 
 // Server-side client with service role (bypass RLS)
 export function createServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } }
-  )
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) throw new Error('Missing Supabase service role env vars')
+  return createClient(url, key, { auth: { persistSession: false } })
 }
 
 // SQL para crear tablas en Supabase (ejecutar en SQL Editor)
