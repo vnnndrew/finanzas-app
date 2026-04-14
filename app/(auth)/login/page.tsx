@@ -18,20 +18,29 @@ export default function LoginPage() {
     setError('')
 
     try {
-      const res = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      })
+      const res = await Promise.race([
+        signIn('credentials', { email, password, redirect: false }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('timeout')), 15000)
+        ),
+      ])
 
-      if (res?.ok && !res?.error) {
+      if (res?.ok) {
+        router.refresh()
         router.push('/')
       } else {
-        setError('Email o contraseña incorrectos')
+        setError(
+          res?.error === 'CredentialsSignin'
+            ? 'Email o contraseña incorrectos'
+            : 'Error al iniciar sesión. Intenta de nuevo.'
+        )
         setLoading(false)
       }
-    } catch {
-      setError('Error de conexión. Intenta de nuevo.')
+    } catch (err: unknown) {
+      const msg = err instanceof Error && err.message === 'timeout'
+        ? 'El servidor tardó demasiado. Intenta de nuevo.'
+        : 'Error de conexión. Intenta de nuevo.'
+      setError(msg)
       setLoading(false)
     }
   }

@@ -17,24 +17,24 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null
+        try {
+          if (!credentials?.email || !credentials?.password) return null
 
-        const db = createServiceClient()
-        const { data: user } = await db
-          .from('users')
-          .select('*')
-          .eq('email', credentials.email.toLowerCase())
-          .single()
+          const db = createServiceClient()
+          const { data: user, error } = await db
+            .from('users')
+            .select('*')
+            .eq('email', credentials.email.toLowerCase())
+            .single()
 
-        if (!user) return null
+          if (error || !user) return null
 
-        const valid = await bcrypt.compare(credentials.password, user.password_hash)
-        if (!valid) return null
+          const valid = await bcrypt.compare(credentials.password, user.password_hash)
+          if (!valid) return null
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
+          return { id: user.id, email: user.email, name: user.name }
+        } catch {
+          return null
         }
       },
     }),
