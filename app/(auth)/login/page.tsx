@@ -26,8 +26,7 @@ export default function LoginPage() {
       ])
 
       if (res?.ok) {
-        router.refresh()
-        router.push('/')
+        window.location.href = '/'
       } else {
         setError(
           res?.error === 'CredentialsSignin'
