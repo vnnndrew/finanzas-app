@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { formatCLP } from '@/lib/utils'
 import { RefreshCw, Plug, CheckCircle, AlertCircle } from 'lucide-react'
@@ -32,15 +32,14 @@ export default function SettingsPage() {
     type: 'success' | 'error'
     text: string
   } | null>(null)
+  const widgetRef = useRef<{ open: () => void } | null>(null)
 
   useEffect(() => {
     fetchAccount()
+    if (document.querySelector('script[src="https://js.fintoc.com/v1/"]')) return
     const script = document.createElement('script')
     script.src = 'https://js.fintoc.com/v1/'
     document.head.appendChild(script)
-    return () => {
-      document.head.removeChild(script)
-    }
   }, [])
 
   async function fetchAccount() {
@@ -62,11 +61,12 @@ export default function SettingsPage() {
       return
     }
 
-    const widget = window.Fintoc.create({
-      publicKey: process.env.NEXT_PUBLIC_FINTOC_PUBLIC_KEY,
-      product: 'movements',
-      country: 'cl',
-      onSuccess: async (token: string) => {
+    if (!widgetRef.current) {
+      widgetRef.current = window.Fintoc.create({
+        publicKey: process.env.NEXT_PUBLIC_FINTOC_PUBLIC_KEY,
+        product: 'movements',
+        country: 'cl',
+        onSuccess: async (token: string) => {
         setMsg(null)
         const res = await fetch('/api/fintoc/connect', {
           method: 'POST',
@@ -83,8 +83,9 @@ export default function SettingsPage() {
         }
       },
       onExit: () => {},
-    })
-    widget.open()
+      })
+    }
+    widgetRef.current.open()
   }
 
   async function handleSync() {
